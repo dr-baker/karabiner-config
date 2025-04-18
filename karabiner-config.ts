@@ -1,3 +1,98 @@
+// Core configuration file for Karabiner-Elements using karabiner.ts
+// This file defines keyboard mappings, layers, and application-specific rules
+
+// MAIN FUNCTIONALITY SUMMARY:
+// ==========================
+// 
+// 1. LEADER KEY (l + ;)
+//    - Press 'l' + ';' simultaneously to activate leader mode
+//    - Available modes:
+//      * a: App launcher (e.g., a -> ChatGPT, c -> Calendar, d -> Dictionary)
+//      * e: Emoji picker (e.g., c -> 📅, h -> 💯, j -> 😂)
+//      * g: Gitmoji picker (e.g., b -> 🐛, d -> 📝, f -> 🚩)
+//      * l: Link opener (custom links from links.json)
+//      * r: Raycast commands (e.g., c -> Calendar, d -> Dictionary)
+//      * s: System settings (e.g., a -> Appearance, d -> Displays)
+//
+// 2. LAYERS
+//    - Vim navigation (f + ;):
+//      * h,j,k,l: Arrow keys
+//      * ;: Shift right, d: Command left, s: Control left, a: Option left
+//    - Symbols (s + ;):
+//      * y,u,i,o,p: ? } ] ) %
+//      * h,j,k,l,;: ^ { [ ( $
+//      * n,m,,,.: & ! @ #
+//    - Number pad (d + ;):
+//      * n,m,,,.: 0,1,2,3
+//      * j,k,l: 4,5,6
+//      * u,i,o: 7,8,9
+//      * p,;,/,]: +,-,/,*
+//    - Snippets (z + x):
+//      * 2,3,4,5: ⌫,⌦,⇥,⎋
+//      * 6,7,8,9: ⌘,⌥,⌃,⇧
+//    - System ( ` ):
+//      * 1,2,3,4: Window positions
+//      * ⏎: Left click
+//      * n: Clear notifications
+//      * ␣: Sleep system
+//
+// 3. DUO MODIFIERS (Simultaneous key presses)
+//    - Single modifiers:
+//      * fd/jk: Command (⌘)
+//      * fs/jl: Control (⌃)
+//      * fa/j;: Option (⌥)
+//      * ds/kl: Shift (⇧)
+//    - Dual modifiers:
+//      * gd/hk: Command + Shift
+//      * gs/hl: Control + Shift
+//      * ga/h;: Option + Shift
+//      * vc/m,: Command + Option
+//      * vx/m.: Command + Control
+//      * cx/,.: Option + Control
+//    - Triple modifier:
+//      * vz/m/: Command + Option + Control
+//
+// 4. APPLICATION-SPECIFIC RULES
+//    - Browsers (Chrome, Safari):
+//      * ⌘[ / ⌘] -> History back/forward
+//      * ⌘⇧[ / ⌘⇧] -> Previous/next tab
+//      * ⌘w -> Close tab
+//      * ⌘` / ⌘⇧` -> Next/previous window
+//      * Chrome: ⌥r -> Refresh, ⌘i -> DevTools, ⌥t -> Search tabs
+//      * Safari: ⌘s -> Toggle sidebar, ⌥r -> Reload, ⌘i -> Web Inspector
+//    - IDEs (JetBrains, Zed, VS Code):
+//      * ⌘[ / ⌘] -> Navigate back/forward
+//      * ⌘⇧[ / ⌘⇧] -> Previous/next tab
+//      * ⌘` / ⌘⇧` -> Next/previous window
+//      * JetBrains: ⌘h -> Hide tools, ⌥r -> Run, ⌘t -> Terminal, ⌥a -> Actions
+//      * Zed: ⌘d -> Close docks, ⌥t -> Tasks, ⌘t -> Terminal, ⌥c -> Commands
+//      * VS Code: ⌘b -> Toggle sidebar, ⌥r -> Run, ⌘t -> Terminal, ⌥c -> Commands
+//    - Communication (Slack, Zoom):
+//      * Slack: ⌘s -> Toggle sidebar, ⌥f -> Section focus, ⌘h -> Hide right bar
+//      * Zoom: ⌘a -> Toggle audio, ⌥s -> Screen share, ⌘v -> Toggle video, ⌥c -> Chat panel
+//    - Raycast:
+//      * ⌥Space -> Quick open
+//      * Hyper + ←↑→↓ -> Window management
+//      * Hyper + ←→ -> Switch display/desktop
+//      * Hyper/Meh + 1-9 -> Window sizing presets
+//    - Homerow:
+//      * f+j -> Left mouse click
+//      * f+k -> Mouse scroll
+//
+// 5. KEYBOARD-SPECIFIC RULES
+//    - Apple keyboard:
+//      * Caps Lock + ⌘⌃ -> Escape
+//      * Caps Lock + ⇧ -> Caps Lock
+//      * Right ⌥⇧ -> Hyper
+//      * Right ⌘⇧ -> Meh
+//    - Moonlander:
+//      * Escape + ⇧/⇪ -> Caps Lock
+//      * Left Control -> Input source switch
+
+// Import core functionality from karabiner.ts library
+// These functions provide the building blocks for creating keyboard mappings
+
+
 import {
   duoLayer,
   ifApp,
