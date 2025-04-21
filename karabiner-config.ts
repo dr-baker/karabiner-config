@@ -182,18 +182,15 @@ function rule_leaderKey() {
       name: 'App',
       mapping: {
         a: 'ChatGPT', // AI
-        c: 'Calendar',
-        d: 'Eudb_en', // Dictionary
-        e: 'Zed', // Editor
-        f: 'Finder',
-        g: 'Google Chrome',
-        i: 'WeChat', // IM
-        m: 'Spark Desktop', // Mail
+        b: 'Arc', // Browser
+        c: 'Cursor', // Code
+        e: 'Mail', // Email
+        // f: 'Finder',
         s: 'Slack',
-        t: 'Warp', // Terminal
+        // t: 'Warp', // Terminal
+        m: 'Messages',
+        n: 'Notes',
         u: 'Spotify', // mUsic
-        w: 'WebStorm',
-        z: 'zoom.us',
         ';': 'System Settings',
       },
       action: toApp,
@@ -634,6 +631,5 @@ function map_hyper() {
     map('›⌘', '›⇧').toMeh(),
   ])
 }
-
 
 main()
