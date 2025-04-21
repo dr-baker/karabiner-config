@@ -57,39 +57,6 @@ export function tapModifiers(
   })
 }
 
-/** Modifiers via 2 keys. e.g. f+d -> ⌘ */
-export function duoModifiers(
-  v: Partial<
-    Record<
-      '⌘' | '⌥' | '⌃' | '⇧' | MultiModifierAlias,
-      `${LetterKeyCode | KeyAlias}${LetterKeyCode | KeyAlias}`[]
-    >
-  >,
-) {
-  let result = []
-
-  for (let [m, k] of Object.entries(v)) {
-    for (let keys of k) {
-      let id = k + m
-      let [firstMod, ...restMods] = (
-        m in modifierKeyAliases
-          ? [modifierKeyAliases[m as ModifierKeyAlias]]
-          : multiModifierAliases[m as MultiModifierAlias]
-      ) as Array<'command' | 'control' | 'option' | 'shift'>
-
-      result.push(
-        mapSimultaneous(keys.split('') as (LetterKeyCode | KeyAlias)[], {
-          to_after_key_up: [toRemoveNotificationMessage(id)],
-        })
-          .toNotificationMessage(id, m) // Must go first or to() doesn't work
-          .to(`left_${firstMod}`, restMods),
-      )
-    }
-  }
-
-  return result
-}
-
 export function raycastExt(name: string) {
   return to$(`open raycast://extensions/${name}`)
 }

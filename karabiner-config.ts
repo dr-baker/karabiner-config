@@ -72,8 +72,8 @@
 //      * Zoom: ⌘a -> Toggle audio, ⌥s -> Screen share, ⌘v -> Toggle video, ⌥c -> Chat panel
 //    - Raycast:
 //      * ⌥Space -> Quick open
-//      * Hyper + ←↑→↓ -> Window management
-//      * Hyper + ←→ -> Switch display/desktop
+//      * THRESHOLD + ←↑→↓ -> Window management
+//      * THRESHOLD + ←→ -> Switch display/desktop
 //      * Hyper/Meh + 1-9 -> Window sizing presets
 //    - Homerow:
 //      * f+j -> Left mouse click
@@ -119,10 +119,8 @@ import {
 } from 'karabiner.ts'
 
 import {
-  duoModifiers,
   historyNavi,
   raycastExt,
-  raycastWin,
   switcher,
   tabNavi,
   tapModifiers,
@@ -131,64 +129,47 @@ import {
   toSystemSetting,
 } from './utils.ts'
 
+let THRESHOLD = 50;
+
 function main() {
   writeToProfile(
-    'Default',
+    'general',
     [
-      rule_duoModifiers(),
-      rule_leaderKey(),
+      rule_leaderKey(), // leader key: a -> app, c -> clipboard, d -> desktop, etc.
 
-      layer_vim(),
-      layer_symbol(),
-      layer_digitAndDelete(),
-      layer_snippet(),
-      layer_system(),
+      layer_symbol(), // s+;: symbols (!@#$%^&*()_+)
+      layer_digitAndDelete(), // d+;: numpad, delete keys
+      layer_system(), // `+system: move cursor around, clear notifications, sleep system
 
-      app_chrome(),
-      app_safari(),
-      app_jetBrainsIDE(),
-      app_zed(),
-      app_vsCode(),
-      app_cursor(),
-      app_slack(),
-      app_warp(),
-      app_spark(),
-      app_zoom(),
-      app_chatGPT(),
+      // Browsers
+      app_chrome(), // Chrome: history/tab nav, refresh, dev tools
+      app_safari(), // Safari: history/tab nav, sidebar, inspector
 
-      app_raycast(),
-      app_homerow(),
+      // IDEs & Editors
+      app_jetBrainsIDE(), // JetBrains: navigation, refactoring
+      app_zed(), // Zed: navigation, commands
+      app_vsCode(), // VS Code: navigation, commands
+      app_cursor(), // Cursor: navigation, commands
 
-      keyboard_apple(),
-      keyboard_moonlander(),
+      // Communication
+      app_slack(), // Slack: navigation, commands
+      app_warp(), // Warp: navigation, commands
+      app_spark(), // Spark: navigation, commands
+      app_zoom(), // Zoom: audio/video controls, chat
+      app_chatGPT(), // ChatGPT: window management
+
+      // System
+      // app_raycast(), // Raycast: window management, navigation
+      app_homerow(), // Homerow: click/scroll gestures
+
+      // Hardware
+      map_hyper(),
     ],
     {
       'basic.simultaneous_threshold_milliseconds': 50,
       'duo_layer.threshold_milliseconds': 50,
       'duo_layer.notification': true,
     },
-  )
-}
-
-function rule_duoModifiers() {
-  return rule('duo-modifiers').manipulators(
-    duoModifiers({
-      '⌘': ['fd', 'jk'], // ⌘ first as used the most
-      '⌃': ['fs', 'jl'], // ⌃ second as Vim uses it
-      '⌥': ['fa', 'j;'], // ⌥ last as used the least
-
-      '⇧': ['ds', 'kl'],
-
-      '⌘⇧': ['gd', 'hk'],
-      '⌃⇧': ['gs', 'hl'],
-      '⌥⇧': ['ga', 'h;'],
-
-      '⌘⌥': ['vc', 'm,'],
-      '⌘⌃': ['vx', 'm.'],
-      '⌥⌃': ['cx', ',.'],
-
-      '⌘⌥⌃': ['vz', 'm/'],
-    }),
   )
 }
 
@@ -226,21 +207,6 @@ function rule_leaderKey() {
         p: '👍', // Plus_one +1
         s: '😅', // Sweat_smile
         t: '🧵', // Thread
-      },
-      action: toPaste,
-    },
-    g: {
-      name: 'Gitmoji', // See https://gitmoji.dev/
-      mapping: {
-        b: '🐛', // fix a Bug
-        d: '📝', // add or update Documentation
-        f: '🚩', // add, update, or remove Feature Flags
-        m: '🔀', // Merge branches
-        n: '✨', // introduce New features
-        r: '♻️', // Refactor code
-        u: '💄', // UI/Style
-        v: '🔖', // release / Version tags
-        x: '🔥', // remove code or files
       },
       action: toPaste,
     },
@@ -285,7 +251,7 @@ function rule_leaderKey() {
   return rule('Leader Key').manipulators([
     // 0: Inactive -> Leader (1)
     withCondition(ifVar(_var, 0))([
-      mapSimultaneous(['l', ';'], undefined, 250)
+      mapSimultaneous(['l', ';'], undefined, THRESHOLD)
         .toVar(_var, 1)
         .toNotificationMessage(_var, hint),
     ]),
@@ -316,28 +282,6 @@ function rule_leaderKey() {
         }),
       )
     }),
-  ])
-}
-
-function layer_vim() {
-  let hint = `\
-←  ↓  ↑  →     ⌫
-H  J    K   L       '`
-  let layer = duoLayer('f', ';').threshold(250).notification(hint)
-  return layer.manipulators([
-    withModifier('??')({
-      h: toKey('←'),
-      j: toKey('↓'),
-      k: toKey('↑'),
-      l: toKey('→'),
-
-      ';': toKey('›⇧'),
-      d: toKey('‹⌘'),
-      s: toKey('‹⌃'),
-      a: toKey('‹⌥'),
-    }),
-
-    { "'": toKey('⌫'), '\\': toKey('⌦') },
   ])
 }
 
@@ -379,7 +323,7 @@ N  M  ,   .    H  J  K  L  ;      Y  U  I  O  P       ␣  ⏎      '`
     '>': toKey('.', '⇧'),
   }
 
-  let layer = duoLayer('s', ';').threshold(250).notification(hint)
+  let layer = duoLayer('s', ';').threshold(THRESHOLD).notification(hint)
   return layer.manipulators([
     withMapper({
       // ! @ # $ % ^ & * ( )    _ +
@@ -416,7 +360,7 @@ function layer_digitAndDelete() {
   let hint = `\
 0    1  2  3    4  5  6    7  8  9    +  -  /  *    .    ⌫_⌥_⌘  ⌦
 N   M  ,   .     J  K  L    U  I  O    P  ;   /  ]    [      '   H   Y    \\`
-  let layer = duoLayer('d', ';').threshold(250).notification(hint)
+  let layer = duoLayer('d', ';').threshold(THRESHOLD).notification(hint)
   return layer.manipulators([
     // digits keypad_{i}
     withMapper([
@@ -450,35 +394,6 @@ N   M  ,   .     J  K  L    U  I  O    P  ;   /  ]    [      '   H   Y    \\`
   ])
 }
 
-function layer_snippet() {
-  return duoLayer('z', 'x').manipulators([
-    { 2: toPaste('⌫'), 3: toPaste('⌦'), 4: toPaste('⇥'), 5: toPaste('⎋') },
-    { 6: toPaste('⌘'), 7: toPaste('⌥'), 8: toPaste('⌃'), 9: toPaste('⇧') },
-    { 0: toPaste('⇪'), ',': toPaste('‹'), '.': toPaste('›') },
-
-    withMapper(['←', '→', '↑', '↓', '␣', '⏎', '⌫', '⌦'])((k) =>
-      map(k).toPaste(k),
-    ),
-
-    withCondition(ifApp('^com.microsoft.VSCode$'))([
-      map('k').to('f20').to('k'),
-      map('l').to('f20').to('l'),
-    ]),
-    withCondition(ifApp('^com.jetbrains.WebStorm$'))([
-      map('k').toTypeSequence('afun'),
-    ]),
-    map('k').toTypeSequence('()␣=>␣'),
-    map('l').toTypeSequence('console.log()←'),
-    map('o').toTypeSequence('console.assert()←'),
-    map('/').toTypeSequence('cn()←'),
-
-    map("'").toTypeSequence('⌫"'),
-    map('[').toTypeSequence('[␣]␣'),
-    map(']').toTypeSequence('-␣[␣]␣'),
-
-    { "'": toKey('⌫'), '\\': toKey('⌦') },
-  ])
-}
 
 function layer_system() {
   return layer('`', 'system').manipulators({
@@ -667,37 +582,37 @@ function app_zoom() {
   )
 }
 
-function app_raycast() {
-  return rule('Raycast').manipulators([
-    map('␣', '⌥').to(raycastExt('evan-liu/quick-open/index')),
+// function app_raycast() {
+//   return rule('Raycast').manipulators([
+//     map('␣', '⌥').to(raycastExt('evan-liu/quick-open/index')),
 
-    withModifier('Hyper')({
-      '↑': raycastWin('previous-display'),
-      '↓': raycastWin('next-display'),
-      '←': raycastWin('previous-desktop'),
-      '→': raycastWin('next-desktop'),
-    }),
-    withModifier('Hyper')({
-      1: raycastWin('first-third'),
-      2: raycastWin('center-third'),
-      3: raycastWin('last-third'),
-      4: raycastWin('first-two-thirds'),
-      5: raycastWin('last-two-thirds'),
-      9: raycastWin('left-half'),
-      0: raycastWin('right-half'),
-    }),
-    withModifier('Meh')({
-      1: raycastWin('first-fourth'),
-      2: raycastWin('second-fourth'),
-      3: raycastWin('third-fourth'),
-      4: raycastWin('last-fourth'),
-      5: raycastWin('center'),
-      6: raycastWin('center-half'),
-      7: raycastWin('center-two-thirds'),
-      8: raycastWin('maximize'),
-    }),
-  ])
-}
+//     withModifier('Hyper')({
+//       '↑': raycastWin('previous-display'),
+//       '↓': raycastWin('next-display'),
+//       '←': raycastWin('previous-desktop'),
+//       '→': raycastWin('next-desktop'),
+//     }),
+//     withModifier('Hyper')({
+//       1: raycastWin('first-third'),
+//       2: raycastWin('center-third'),
+//       3: raycastWin('last-third'),
+//       4: raycastWin('first-two-thirds'),
+//       5: raycastWin('last-two-thirds'),
+//       9: raycastWin('left-half'),
+//       0: raycastWin('right-half'),
+//     }),
+//     withModifier('Meh')({
+//       1: raycastWin('first-fourth'),
+//       2: raycastWin('second-fourth'),
+//       3: raycastWin('third-fourth'),
+//       4: raycastWin('last-fourth'),
+//       5: raycastWin('center'),
+//       6: raycastWin('center-half'),
+//       7: raycastWin('center-two-thirds'),
+//       8: raycastWin('maximize'),
+//     }),
+//   ])
+// }
 
 function app_homerow() {
   return rule('Homerow').manipulators([
@@ -712,27 +627,13 @@ function app_chatGPT() {
   ])
 }
 
-function keyboard_apple() {
-  let ifAppleKeyboard = ifDevice({ vendor_id: 12951 }).unless() // Not Moonlander
-  return rule('Apple Keyboard', ifAppleKeyboard).manipulators([
-    map('⇪', '?⌘⌃').to('⎋'),
-    map('⇪', '⇧').to('⇪'),
+function map_hyper() {
+  return rule('Map Hyper/Meh').manipulators([
 
     map('›⌥', '›⇧').toHyper(),
     map('›⌘', '›⇧').toMeh(),
   ])
 }
 
-function keyboard_moonlander() {
-  let ifMoonlander = ifDevice({ vendor_id: 12951, product_id: 6505 })
-  return rule('Moonlander', ifMoonlander).manipulators([
-    map('⎋', '⇧').to('⇪'),
-    map('⎋', '⇪').to('⇪'),
-
-    ...tapModifiers({
-      '‹⌃': toKey('␣', '⌘⇧'), // selectNextSourceInInputMenu
-    }),
-  ])
-}
 
 main()
