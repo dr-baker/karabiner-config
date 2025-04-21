@@ -425,6 +425,7 @@ function app_chrome() {
 
     ...tapModifiers({
       '‹⌥': toKey('r', '⌘'), // refreshThePage
+      '‹⌘': toKey('s', '⌘'), // leftSidebar
 
       '›⌘': toKey('i', '⌘⌥'), // developerTools
       '›⌥': toKey('a', '⌘⇧'), // searchTabs
