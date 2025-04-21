@@ -188,6 +188,7 @@ let mappings = {
       c: 'Cursor', // Code
       e: 'Mail', // Email
       // f: 'Finder',
+      p: 'Passwords',
       s: 'Slack',
       // t: 'Warp', // Terminal
       m: 'Messages',
