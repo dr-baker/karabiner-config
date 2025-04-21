@@ -32,8 +32,6 @@
 //      * 6,7,8,9: ⌘,⌥,⌃,⇧
 //    - System ( ` ):
 //      * 1,2,3,4: Window positions
-//      * ⏎: Left click
-//      * n: Clear notifications
 //      * ␣: Sleep system
 //
 // 3. DUO MODIFIERS (Simultaneous key presses)
@@ -100,6 +98,7 @@ import {
   ifVar,
   layer,
   map,
+  mapDoubleTap,
   mapSimultaneous,
   rule,
   to$,
@@ -114,8 +113,11 @@ import {
   toUnsetVar,
   withCondition,
   withMapper,
+  hyperLayer,
   withModifier,
   writeToProfile,
+  modifierLayer,
+  type FromKeyParam,
 } from 'karabiner.ts'
 
 import {
@@ -164,6 +166,10 @@ function main() {
 
       // Hardware
       map_hyper(),
+      caps_hyper(),
+      
+      app_shortcuts(),
+      snippets(),
     ],
     {
       'basic.simultaneous_threshold_milliseconds': 50,
@@ -173,92 +179,91 @@ function main() {
   )
 }
 
+let mappings = {
+  a: {
+    name: 'App',
+    mapping: {
+      a: 'ChatGPT', // AI
+      b: 'Arc', // Browser
+      c: 'Cursor', // Code
+      e: 'Mail', // Email
+      // f: 'Finder',
+      s: 'Slack',
+      // t: 'Warp', // Terminal
+      m: 'Messages',
+      n: 'Notes',
+      u: 'Spotify', // mUsic
+      ';': 'System Settings',
+    },
+    action: toApp,
+  },
+  e: {
+    name: 'Emoji',
+    mapping: {
+      c: '📅', // Calendar
+      h: '💯', // Hundred
+      j: '😂', // Joy
+      p: '👍', // Plus_one +1
+      s: '😅', // Sweat_smile
+      t: '🧵', // Thread
+    },
+    action: toPaste,
+  },
+  l: {
+    name: 'Link',
+    mapping: require('./links.json') as { [key: string]: string[] },
+    action: (x) => to$(`open ${x}`),
+  },
+  r: {
+    name: 'Raycast',
+    mapping: {
+      c: ['raycast/calendar/my-schedule', 'Calendar'],
+      d: ['raycast/dictionary/define-word', 'Dictionary'],
+      e: ['raycast/emoji-symbols/search-emoji-symbols', 'Emoji'],
+      g: ['ricoberger/gitmoji/gitmoji', 'Gitmoji'],
+      s: ['raycast/snippets/search-snippets', 'Snippets'],
+      v: ['raycast/clipboard-history/clipboard-history', 'Clipboard'],
+    },
+    action: raycastExt,
+  },
+  s: {
+    name: 'SystemSetting',
+    mapping: {
+      a: 'Appearance',
+      d: 'Displays',
+      k: 'Keyboard',
+      o: 'Dock',
+    },
+    action: toSystemSetting,
+  },
+} satisfies {
+  [key: string]: {
+    name: string
+    mapping: { [key: string]: string | string[] }
+    action: (v: string) => ToEvent | ToEvent[]
+  }
+}
+
 function rule_leaderKey() {
   let _var = 'leader'
   let escape = [toUnsetVar(_var), toRemoveNotificationMessage(_var)]
-
-  let mappings = {
-    a: {
-      name: 'App',
-      mapping: {
-        a: 'ChatGPT', // AI
-        b: 'Arc', // Browser
-        c: 'Cursor', // Code
-        e: 'Mail', // Email
-        // f: 'Finder',
-        s: 'Slack',
-        // t: 'Warp', // Terminal
-        m: 'Messages',
-        n: 'Notes',
-        u: 'Spotify', // mUsic
-        ';': 'System Settings',
-      },
-      action: toApp,
-    },
-    e: {
-      name: 'Emoji',
-      mapping: {
-        c: '📅', // Calendar
-        h: '💯', // Hundred
-        j: '😂', // Joy
-        p: '👍', // Plus_one +1
-        s: '😅', // Sweat_smile
-        t: '🧵', // Thread
-      },
-      action: toPaste,
-    },
-    l: {
-      name: 'Link',
-      mapping: require('./links.json') as { [key: string]: string[] },
-      action: (x) => to$(`open ${x}`),
-    },
-    r: {
-      name: 'Raycast',
-      mapping: {
-        c: ['raycast/calendar/my-schedule', 'Calendar'],
-        d: ['raycast/dictionary/define-word', 'Dictionary'],
-        e: ['raycast/emoji-symbols/search-emoji-symbols', 'Emoji'],
-        g: ['ricoberger/gitmoji/gitmoji', 'Gitmoji'],
-        s: ['raycast/snippets/search-snippets', 'Snippets'],
-        v: ['raycast/clipboard-history/clipboard-history', 'Clipboard'],
-      },
-      action: raycastExt,
-    },
-    s: {
-      name: 'SystemSetting',
-      mapping: {
-        a: 'Appearance',
-        d: 'Displays',
-        k: 'Keyboard',
-        o: 'Dock',
-      },
-      action: toSystemSetting,
-    },
-  } satisfies {
-    [key: string]: {
-      name: string
-      mapping: { [key: string]: string | string[] }
-      action: (v: string) => ToEvent | ToEvent[]
-    }
-  }
 
   let keys = Object.keys(mappings) as Array<keyof typeof mappings>
   let hint = keys.map((x) => `${x}_${mappings[x].name}`).join(' ')
 
   return rule('Leader Key').manipulators([
-    // 0: Inactive -> Leader (1)
+    // if var not set, set 1 on l+; (AKA, activate)
     withCondition(ifVar(_var, 0))([
       mapSimultaneous(['l', ';'], undefined, THRESHOLD)
         .toVar(_var, 1)
         .toNotificationMessage(_var, hint),
     ]),
 
-    // 0.unless: Leader or NestedLeader -> Inactive (0)
+    // if var is set, map escape/caps to escape
     withCondition(ifVar(_var, 0).unless())([
       withMapper(['⎋', '⇪'])((x) => map(x).to(escape)),
     ]),
 
-    // 1: Leader -> NestedLeader (🔤)
     withCondition(ifVar(_var, 1))(
       keys.map((k) => {
         let hint = Object.entries(mappings[k].mapping)
@@ -268,7 +273,6 @@ function rule_leaderKey() {
       }),
     ),
 
-    // 🔤: NestedLeader
     ...keys.map((nestedLeaderKey) => {
       let { mapping, action } = mappings[nestedLeaderKey]
       let actionKeys = Object.keys(mapping) as Array<keyof typeof mapping>
@@ -413,7 +417,8 @@ function layer_system() {
 }
 
 function app_chrome() {
-  return rule('Chrome', ifApp('^com.google.Chrome$')).manipulators([
+  // return rule('Chrome', ifApp('^com.google.Chrome$')).manipulators([
+  return rule('Arc', ifApp('^company.thebrowser.Browser$')).manipulators([
     ...historyNavi(),
     ...tabNavi(),
     ...switcher(),
@@ -624,11 +629,47 @@ function app_chatGPT() {
   ])
 }
 
+/// ---
+
+// map('›⌥', '›⇧').toHyper(),
+//     map('›⌘', '›⇧').toMeh(),
 function map_hyper() {
   return rule('Map Hyper/Meh').manipulators([
 
     map('›⌥', '›⇧').toHyper(),
     map('›⌘', '›⇧').toMeh(),
+  ])
+}
+
+function caps_hyper() {
+  return rule('Caps Lock → Hyper').manipulators([
+      map('⇪').toHyper().toIfAlone('caps_lock'), 
+      // TODO enabling caps lock is broken, see https://www.reddit.com/r/macapps/comments/1hqzary/caps_lock_if_alone_function_not_working_in/
+      map('⇪', '⇧').to('caps_lock'),
+    ])
+}
+
+function app_shortcuts() {
+  const hint = Object.entries(mappings.a.mapping)
+    .map(([key, app]) => `[${key}] ${app}`)
+    .join('\n');
+
+  return hyperLayer('a')
+    .description('Launch Apps')
+    .leaderMode({ escape: ['spacebar', 'return_or_enter', 'escape'] })
+    .notification(hint)
+    .manipulators(
+      Object.entries(mappings.a.mapping).reduce((acc, [key, app]) => ({
+        ...acc,
+        [key]: toApp(app)
+      }), {})
+    )
+}
+
+function snippets() {
+  return rule('Snippets').manipulators([
+    map('␣', '⇧').to(toKey('-', '⇧')),
+    map('-').toIfHeldDown( toPaste('--------.') ).toAfterKeyUp('-'), // testing
   ])
 }
 
