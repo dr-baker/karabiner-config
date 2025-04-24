@@ -147,8 +147,7 @@ function main() {
       app_chrome(), // Chrome: history/tab nav, refresh, dev tools
       app_safari(), // Safari: history/tab nav, sidebar, inspector
 
-      // IDEs & Editors
-      app_jetBrainsIDE(), // JetBrains: navigation, refactoring
+      // IDEs & Editors‰
       app_zed(), // Zed: navigation, commands
       app_vsCode(), // VS Code: navigation, commands
       app_cursor(), // Cursor: navigation, commands
@@ -243,6 +242,15 @@ let mappings = {
     mapping: { [key: string]: string | string[] }
     action: (v: string) => ToEvent | ToEvent[]
   }
+}
+
+// ›⌃ ›⌥ ›⌘ ‹⌃ ‹⌥ ‹⌘
+let app_controls = {
+  leftSidebar: '‹⌥',
+  rightSidebar: '›⌥',
+  swapTab: '‹⌃',
+  search: '›⌘',
+  // reloadPage: '›⌥',
 }
 
 function rule_leaderKey() {
@@ -364,7 +372,7 @@ function layer_digitAndDelete() {
 N   M  ,   .     J  K  L    U  I  O    P  ;   /  ]    [      '   H   Y    \\`
   let layer = duoLayer('d', ';').threshold(THRESHOLD).notification(hint)
   return layer.manipulators([
-    // digits keypad_{i}
+    // digits keypad_{i}c
     withMapper([
       'n', //             // 0
       ...['m', ',', '.'], // 1 2 3
@@ -425,11 +433,10 @@ function app_chrome() {
     ...switcher(),
 
     ...tapModifiers({
-      '‹⌥': toKey('r', '⌘'), // refreshThePage
-      '‹⌘': toKey('s', '⌘'), // leftSidebar
-
-      '›⌘': toKey('i', '⌘⌥'), // developerTools
-      '›⌥': toKey('a', '⌘⇧'), // searchTabs
+      [app_controls.swapTab]: toKey('tab', '⌃'), // refreshThePage
+      [app_controls.leftSidebar]: toKey('s', '⌘'), // leftSidebar
+      [app_controls.rightSidebar]: toKey('i', '⌘⌥'), // dev tools
+      [app_controls.search]: toKey('l', '⌘'), // Address Bar
     }),
 
     map(1, 'Meh').to(toResizeWindow('Google Chrome')),
@@ -443,33 +450,12 @@ function app_safari() {
     ...switcher(),
 
     ...tapModifiers({
-      '‹⌘': toKey('l', '⌘⇧'), // showHideSideBar
-      '‹⌥': toKey('r', '⌘'), // reloadPage
-
-      '›⌘': toKey('i', '⌘⌥'), // showWebInspector
+      [app_controls.leftSidebar]: toKey('l', '⌘⇧'), // showHideSideBar
+      [app_controls.rightSidebar]: toKey('i', '⌘⌥'), // showWebInspector
+      [app_controls.search]: toKey('l', '⌘'), // Address Bar
     }),
 
     map(1, 'Meh').to(toResizeWindow('Safari')),
-  ])
-}
-
-function app_jetBrainsIDE() {
-  return rule('JetBrains IDE', ifApp('^com.jetbrains.[\\w-]+$')).manipulators([
-    ...historyNavi(),
-    ...tabNavi(),
-    ...switcher(),
-
-    ...tapModifiers({
-      '‹⌘': toKey('⎋', '⌘⇧'), // hideAllToolWindows
-      '‹⌥': toKey('r', '⌥⇧'), // Run
-      '‹⌃': toKey('r', '⌥⌃'), // Run...
-
-      '›⌘': toKey(4, '⌥'), // toolWindows_terminal
-      '›⌥': toKey('a', '⌘⇧'), // findAction
-      '›⌃': toKey('e', '⌘'), // recentFiles
-    }),
-
-    map(1, 'Meh').to(toResizeWindow('WebStorm')),
   ])
 }
 
@@ -480,7 +466,7 @@ function app_zed() {
     ...switcher(),
 
     ...tapModifiers({
-      '‹⌘': toKey('y', '⌘⌥'), // closeAllDocks
+      [app_controls.leftSidebar]: toKey('y', '⌘⌥'), // closeAllDocks
       '‹⌥': toKey('t', '⌥'), // task::Rerun
       '‹⌃': toKey('t', '⌥⇧'), // task::Spawn
 
@@ -501,12 +487,13 @@ function app_vsCode() {
     map('l', '⌃').to('-', '⌃⇧'),
 
     ...tapModifiers({
-      '‹⌘': toKey('⎋', '⌘'), // Tobble Sidebar visibility
-      '‹⌥': toKey('r', '⌥⇧'), // Run
+      [app_controls.leftSidebar]: toKey('b', '⌘⌥'), // Toggle Sidebar visibility
+      [app_controls.rightSidebar]: toKey('b', '⌘'), // Toggle Sidebar visibility
+      [app_controls.swapTab]: toKey('f5', '⌃'), // Run
+      [app_controls.search]: toKey('p', '⌘'), // // Quick Open, Go to File...
 
-      '›⌘': toKey('`', '⌃'), // terminal
-      '›⌥': toKey('p', '⌘⇧'), // Show Command Palette
-      '›⌃': toKey('p', '⌘'), // Quick Open, Go to File...
+      // '›⌘': toKey('j', '⌘'), // terminal
+      // '›⌥': toKey('p', '⌘⇧'), // Show Command Palette
     }),
 
     map(1, 'Meh').to(toResizeWindow('Code')),
@@ -521,12 +508,13 @@ function app_cursor() {
     map('l', '⌃').to('-', '⌃⇧'),
 
     ...tapModifiers({
-      '‹⌘': toKey('⎋', '⌘'), // Tobble Sidebar visibility
-      '‹⌥': toKey('r', '⌥⇧'), // Run
+      [app_controls.leftSidebar]: toKey('b', '⌘⌥'), // Toggle Sidebar visibility
+      [app_controls.rightSidebar]: toKey('b', '⌘'), // Toggle Sidebar visibility
+      [app_controls.swapTab]: toKey('f5', '⌃'), // Run
+      [app_controls.search]: toKey('p', '⌘'), // // Quick Open, Go to File...
 
-      '›⌘': toKey('`', '⌃'), // terminal
-      '›⌥': toKey('p', '⌘⇧'), // Show Command Palette
-      '›⌃': toKey('p', '⌘'), // Quick Open, Go to File...
+      // '›⌘': toKey('j', '⌘'), // terminal
+      // '›⌥': toKey('p', '⌘⇧'), // Show Command Palette
     }),
   ])
 }
@@ -543,11 +531,10 @@ function app_slack() {
     ...historyNavi(),
 
     ...tapModifiers({
-      '‹⌘': toKey('d', '⌘⇧'), // showHideSideBar
-      '‹⌥': toKey('f6'), // moveFocusToTheNextSection
+      [app_controls.leftSidebar]: toKey('d', '⌘⇧'), // showHideSideBar
+      [app_controls.swapTab]: toKey('f6'), // moveFocusToTheNextSection
 
-      '›⌘': toKey('.', '⌘'), // hideRightBar
-      '›⌥': toKey('k', '⌘'), // open
+      [app_controls.rightSidebar]: toKey('.', '⌘'), // hideRightBar
     }),
 
     map(1, 'Meh').to(
