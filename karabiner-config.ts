@@ -251,9 +251,13 @@ let leader_mappings = {
     name: 'SystemSetting',
     mapping: {
       a: 'Appearance',
+      b: 'Bluetooth',
       d: 'Displays',
+      g: 'Software Update', // General
       k: 'Keyboard',
-      o: 'Dock',
+      m: 'Mouse',
+      n: 'Network', 
+      p: 'Security', // Privacy and Security
     },
     action: toSystemSetting,
   },
@@ -282,7 +286,7 @@ function rule_leaderKey() {
   let escape = [toUnsetVar(_var), toRemoveNotificationMessage(_var)]
 
   let keys = Object.keys(leader_mappings) as Array<keyof typeof leader_mappings>
-  let hint = keys.map((x) => `${x}_${leader_mappings[x].name}`).join(' ')
+  let hint = keys.map((x) => `${x}_${leader_mappings[x].name}`).join('')
 
   return rule('Leader Key').manipulators([
     // if var not set, set 1 on l+; (AKA, activate)
