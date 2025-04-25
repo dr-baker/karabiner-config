@@ -286,7 +286,7 @@ function rule_leaderKey() {
   let escape = [toUnsetVar(_var), toRemoveNotificationMessage(_var)]
 
   let keys = Object.keys(leader_mappings) as Array<keyof typeof leader_mappings>
-  let hint = keys.map((x) => `${x}_${leader_mappings[x].name}`).join('')
+  let hint = keys.map((x) => `[\t${x}\t]\t${leader_mappings[x].name}`).join('\n')
 
   return rule('Leader Key').manipulators([
     // if var not set, set 1 on l+; (AKA, activate)
@@ -304,8 +304,8 @@ function rule_leaderKey() {
     withCondition(ifVar(_var, 1))(
       keys.map((k) => {
         let hint = Object.entries(leader_mappings[k].mapping)
-          .map(([k, v]) => `${k}_${Array.isArray(v) ? v[1] : v}`)
-          .join(' ')
+          .map(([k, v]) => `[\t${k}\t]\t${Array.isArray(v) ? v[1] : v}`)
+          .join('\n')
         return map(k).toVar(_var, k).toNotificationMessage(_var, hint)
       }),
     ),
