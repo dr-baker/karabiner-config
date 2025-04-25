@@ -13,41 +13,6 @@ import {
   toRemoveNotificationMessage,
 } from 'karabiner.ts'
 
-/** Back/Forward history in most apps. */
-export function historyNavi() {
-  return [
-    map('h', '⌃').to('[', '⌘'), //
-    map('l', '⌃').to(']', '⌘'),
-  ]
-}
-
-/** Pre/Next tab in most apps. */
-export function tabNavi() {
-  return [
-    map('h', '⌥').to('[', '⌘⇧'), //
-    map('l', '⌥').to(']', '⌘⇧'),
-  ]
-}
-
-/** Pre/Next switcher in most apps. */
-export function switcher() {
-  return [
-    map('h', '⌘⌥⌃').to('⇥', '⌃⇧'), //
-    map('l', '⌘⌥⌃').to('⇥', '⌃'),
-  ]
-}
-
-/**
- * Map when tap a modifier key; keep as modifier when hold.
- *
- * - ‹⌘ Show/Hide UI (e.g. left sidebars, or all UI)
- * - ‹⌥ Run current task (re-run)
- * - ‹⌃ Run list
- *
- * - ›⌘ Show/Hide UI (e.g. right sidebars, or terminal)
- * - ›⌥ Command Palette (e.g. ⌘K, ⌘P)
- * - ›⌃ History (e.g. recent files)
- */
 export function tapModifiers(
   v: Partial<Record<SideModifierAlias | 'fn', ToEvent>>,
 ) {
@@ -55,6 +20,14 @@ export function tapModifiers(
     let key = k as SideModifierAlias | 'fn'
     return map(key).to(key).toIfAlone(to)
   })
+}
+
+export function tapModifier(
+  v: Partial<Record<SideModifierAlias | 'fn', ToEvent>>,
+) {
+  let [k, to] = Object.entries(v)[0]
+  let key = k as SideModifierAlias | 'fn'
+  return map(key).to(key).toIfAlone(to)
 }
 
 export function raycastExt(name: string) {

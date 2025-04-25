@@ -117,6 +117,8 @@ import {
   writeToProfile,
   modifierLayer,
   type FromKeyParam,
+  type ModifierParam,
+  type ToKeyParam,
 } from 'karabiner.ts'
 
 // Unused app configurations - uncomment to use
@@ -128,10 +130,8 @@ import {
 // } from './unused_config'
 
 import {
-  historyNavi,
   raycastExt,
-  switcher,
-  tabNavi,
+  raycastWin,
   tapModifiers,
   toResizeWindow,
   toSystemSetting,
@@ -139,29 +139,53 @@ import {
 
 let THRESHOLD = 50;
 
+type ControlMapping = {
+  from: readonly [FromKeyParam, ModifierParam],
+  to: readonly [ToKeyParam, ModifierParam]
+}
+
+const system_controls = {
+  // History navigation 
+  back_history: {
+    from: ['h', '⌃'], to: ['[', '⌘']
+  },
+  forward_history: {
+    from: ['l', '⌃'], to: [']', '⌘']
+  },
+  // Tab navigation
+  prev_tab: {
+    from: ['h', '⌃'], to: ['[', '⌘⇧']
+  },
+  next_tab: {
+    from: ['l', '⌃'], to: [']', '⌘⇧']
+  },
+  // Alt-tab switcher
+  prev_file: {
+    from: ['h', '⌘⌥⌃'], to: ['⇥', '⌃⇧']
+  },
+  next_file: {
+    from: ['l', '⌘⌥⌃'], to: ['⇥', '⌃']
+  }
+} as const satisfies Record<string, ControlMapping>;
+
+function applySystemControls() {
+  return Object.entries(system_controls).map(([_, mapping]) => 
+    map(mapping.from[0], mapping.from[1]).to(mapping.to[0], mapping.to[1])
+  );
+}
+
 function main() {
   writeToProfile(
     'general',
     [
-      rule_leaderKey(), // leader key: a -> app, c -> clipboard, d -> desktop, etc.
-
+      rule_leaderKey(),
+      rule('System Controls').manipulators(applySystemControls()),
       layer_symbol(), // s+;: symbols (!@#$%^&*()_+)
-      layer_digitAndDelete(), // d+;: numpad, delete keys
-      layer_system(), // `+system: move cursor around, clear notifications, sleep system
-
-      // Browsers
-      app_chrome(), // Chrome: history/tab nav, refresh, dev tools
-      // app_safari(), // Safari: history/tab nav, sidebar, inspector
-
-      // IDEs & Editors
-      // app_zed(), // Zed: navigation, commands
-      // app_vsCode(), // VS Code: navigation, commands
-      app_cursor(), // Cursor: navigation, commands
-
-      // Communication
-      app_slack(), // Slack: navigation, commands
-
-      // manual edits
+      layer_digitAndDelete(),// d+;: numpad, delete keys
+      layer_system(),// `: window positions, mouse, sleep, tab switch
+      app_chrome(),
+      app_cursor(),
+      app_slack(),
       map_hyper(),
       caps_hyper(),
       app_shortcuts(),
@@ -175,7 +199,7 @@ function main() {
   )
 }
 
-let mappings = {
+let leader_mappings = {
   a: {
     name: 'App',
     mapping: {
@@ -241,6 +265,9 @@ let mappings = {
   }
 }
 
+// New plan: sidebar toggles with CMD+S and CMD+SHIFT+S
+// tap modifiers used for bespoke functions without an established shortcut
+// in my headcannon. rcmd, ropt for history nav. 
 // ›⌃ ›⌥ ›⌘ ‹⌃ ‹⌥ ‹⌘
 let app_controls = {
   leftSidebar: '‹⌥',
@@ -254,8 +281,8 @@ function rule_leaderKey() {
   let _var = 'leader'
   let escape = [toUnsetVar(_var), toRemoveNotificationMessage(_var)]
 
-  let keys = Object.keys(mappings) as Array<keyof typeof mappings>
-  let hint = keys.map((x) => `${x}_${mappings[x].name}`).join(' ')
+  let keys = Object.keys(leader_mappings) as Array<keyof typeof leader_mappings>
+  let hint = keys.map((x) => `${x}_${leader_mappings[x].name}`).join(' ')
 
   return rule('Leader Key').manipulators([
     // if var not set, set 1 on l+; (AKA, activate)
@@ -272,7 +299,7 @@ function rule_leaderKey() {
 
     withCondition(ifVar(_var, 1))(
       keys.map((k) => {
-        let hint = Object.entries(mappings[k].mapping)
+        let hint = Object.entries(leader_mappings[k].mapping)
           .map(([k, v]) => `${k}_${Array.isArray(v) ? v[1] : v}`)
           .join(' ')
         return map(k).toVar(_var, k).toNotificationMessage(_var, hint)
@@ -280,7 +307,7 @@ function rule_leaderKey() {
     ),
 
     ...keys.map((nestedLeaderKey) => {
-      let { mapping, action } = mappings[nestedLeaderKey]
+      let { mapping, action } = leader_mappings[nestedLeaderKey]
       let actionKeys = Object.keys(mapping) as Array<keyof typeof mapping>
       return withCondition(ifVar(_var, nestedLeaderKey))(
         actionKeys.map((x) => {
@@ -417,55 +444,39 @@ function layer_system() {
 }
 
 function app_chrome() {
-  // return rule('Chrome', ifApp('^com.google.Chrome$')).manipulators([
   return rule('Arc', ifApp('^company.thebrowser.Browser$')).manipulators([
-    ...historyNavi(),
-    ...tabNavi(),
-    ...switcher(),
-
     ...tapModifiers({
       [app_controls.swapTab]: toKey('tab', '⌃'), // refreshThePage
       [app_controls.leftSidebar]: toKey('s', '⌘'), // leftSidebar
       [app_controls.rightSidebar]: toKey('i', '⌘⌥'), // dev tools
       [app_controls.search]: toKey('l', '⌘'), // Address Bar
     }),
-
     map(1, 'Meh').to(toResizeWindow('Google Chrome')),
   ])
 }
 
 function app_cursor() {
   return rule('Cursor', ifApp('^com.todesktop.230313mzl4w4u92$')).manipulators([
-    ...tabNavi(),
-    ...switcher(),
     map('h', '⌃').to('-', '⌃'),
     map('l', '⌃').to('-', '⌃⇧'),
-
     ...tapModifiers({
       [app_controls.leftSidebar]: toKey('b', '⌘⌥'), // Toggle Sidebar visibility
       [app_controls.rightSidebar]: toKey('b', '⌘'), // Toggle Sidebar visibility
       [app_controls.swapTab]: toKey('f5', '⌃'), // Run
-      [app_controls.search]: toKey('p', '⌘'), // // Quick Open, Go to File...
-
-      // '›⌘': toKey('j', '⌘'), // terminal
-      // '›⌥': toKey('p', '⌘⇧'), // Show Command Palette
+      [app_controls.search]: toKey('p', '⌘'), // Quick Open, Go to File...
     }),
   ])
 }
 
 function app_slack() {
   return rule('Slack', ifApp('^com.tinyspeck.slackmacgap$')).manipulators([
-    ...historyNavi(),
-
     ...tapModifiers({
       [app_controls.leftSidebar]: toKey('d', '⌘⇧'), // showHideSideBar
       [app_controls.swapTab]: toKey('f6'), // moveFocusToTheNextSection
-
       [app_controls.rightSidebar]: toKey('.', '⌘'), // hideRightBar
     }),
-
     map(1, 'Meh').to(
-      toResizeWindow('Slack', { x: 1263, y: 25 }, { w: 1760, h: 1415 }),
+      toResizeWindow('Slack', { x: 2294, y: 526 }, { w: 1146, h: 914 }),
     ),
   ])
 }
@@ -486,7 +497,7 @@ function caps_hyper() {
 }
 
 function app_shortcuts() {
-  const hint = Object.entries(mappings.a.mapping)
+  const hint = Object.entries(leader_mappings.a.mapping)
     .map(([key, app]) => `[${key}] ${app}`)
     .join('\n');
 
@@ -495,7 +506,7 @@ function app_shortcuts() {
     .leaderMode({ escape: ['spacebar', 'return_or_enter', 'escape'] })
     .notification(hint)
     .manipulators(
-      Object.entries(mappings.a.mapping).reduce((acc, [key, app]) => ({
+      Object.entries(leader_mappings.a.mapping).reduce((acc, [key, app]) => ({
         ...acc,
         [key]: toApp(app)
       }), {})
