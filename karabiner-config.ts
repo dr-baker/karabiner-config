@@ -133,7 +133,6 @@ import {
   switcher,
   tabNavi,
   tapModifiers,
-  toClearNotifications,
   toResizeWindow,
   toSystemSetting,
 } from './utils.ts'
@@ -409,15 +408,9 @@ function layer_system() {
     2: toMouseCursorPosition({ x: '50%', y: '50%', screen: 0 }),
     3: toMouseCursorPosition({ x: '75%', y: '50%', screen: 0 }),
     4: toMouseCursorPosition({ x: '99%', y: 20, screen: 0 }),
-
     5: toMouseCursorPosition({ x: '50%', y: '50%', screen: 1 }),
-
     '⏎': toPointingButton('button1'),
-
-    n: toClearNotifications,
-
     '␣': toSleepSystem(),
-
     j: toKey('⇥', '⌘'),
     k: toKey('⇥', '⌘⇧'),
   })
