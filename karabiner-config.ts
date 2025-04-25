@@ -90,7 +90,6 @@
 // Import core functionality from karabiner.ts library
 // These functions provide the building blocks for creating keyboard mappings
 
-
 import {
   duoLayer,
   ifApp,
@@ -120,6 +119,14 @@ import {
   type FromKeyParam,
 } from 'karabiner.ts'
 
+// Unused app configurations - uncomment to use
+// import {
+//   app_safari,
+//   app_zed,
+//   app_vsCode,
+//   app_controls as unused_controls
+// } from './unused_config'
+
 import {
   historyNavi,
   raycastExt,
@@ -145,28 +152,19 @@ function main() {
 
       // Browsers
       app_chrome(), // Chrome: history/tab nav, refresh, dev tools
-      app_safari(), // Safari: history/tab nav, sidebar, inspector
+      // app_safari(), // Safari: history/tab nav, sidebar, inspector
 
-      // IDEs & Editors‰
-      app_zed(), // Zed: navigation, commands
-      app_vsCode(), // VS Code: navigation, commands
+      // IDEs & Editors
+      // app_zed(), // Zed: navigation, commands
+      // app_vsCode(), // VS Code: navigation, commands
       app_cursor(), // Cursor: navigation, commands
 
       // Communication
       app_slack(), // Slack: navigation, commands
-      app_warp(), // Warp: navigation, commands
-      app_spark(), // Spark: navigation, commands
-      app_zoom(), // Zoom: audio/video controls, chat
-      app_chatGPT(), // ChatGPT: window management
 
-      // System
-      // app_raycast(), // Raycast: window management, navigation
-      app_homerow(), // Homerow: click/scroll gestures
-
-      // Hardware
+      // manual edits
       map_hyper(),
       caps_hyper(),
-      
       app_shortcuts(),
       snippets(),
     ],
@@ -443,63 +441,6 @@ function app_chrome() {
   ])
 }
 
-function app_safari() {
-  return rule('Safari', ifApp('^com.apple.Safari$')).manipulators([
-    ...historyNavi(),
-    ...tabNavi(),
-    ...switcher(),
-
-    ...tapModifiers({
-      [app_controls.leftSidebar]: toKey('l', '⌘⇧'), // showHideSideBar
-      [app_controls.rightSidebar]: toKey('i', '⌘⌥'), // showWebInspector
-      [app_controls.search]: toKey('l', '⌘'), // Address Bar
-    }),
-
-    map(1, 'Meh').to(toResizeWindow('Safari')),
-  ])
-}
-
-function app_zed() {
-  return rule('Zed', ifApp('^dev.zed.Zed$')).manipulators([
-    ...historyNavi(),
-    ...tabNavi(),
-    ...switcher(),
-
-    ...tapModifiers({
-      [app_controls.leftSidebar]: toKey('y', '⌘⌥'), // closeAllDocks
-      '‹⌥': toKey('t', '⌥'), // task::Rerun
-      '‹⌃': toKey('t', '⌥⇧'), // task::Spawn
-
-      '›⌘': toKey('`', '⌃'), // terminal
-      '›⌥': toKey('a', '⌘⇧'), // command
-      '›⌃': toKey('p', '⌘'), // fileFinder
-    }),
-
-    map(1, 'Meh').to(toResizeWindow('Zed')),
-  ])
-}
-
-function app_vsCode() {
-  return rule('VSCode', ifApp('^com.microsoft.VSCode$')).manipulators([
-    ...tabNavi(),
-    ...switcher(),
-    map('h', '⌃').to('-', '⌃'),
-    map('l', '⌃').to('-', '⌃⇧'),
-
-    ...tapModifiers({
-      [app_controls.leftSidebar]: toKey('b', '⌘⌥'), // Toggle Sidebar visibility
-      [app_controls.rightSidebar]: toKey('b', '⌘'), // Toggle Sidebar visibility
-      [app_controls.swapTab]: toKey('f5', '⌃'), // Run
-      [app_controls.search]: toKey('p', '⌘'), // // Quick Open, Go to File...
-
-      // '›⌘': toKey('j', '⌘'), // terminal
-      // '›⌥': toKey('p', '⌘⇧'), // Show Command Palette
-    }),
-
-    map(1, 'Meh').to(toResizeWindow('Code')),
-  ])
-}
-
 function app_cursor() {
   return rule('Cursor', ifApp('^com.todesktop.230313mzl4w4u92$')).manipulators([
     ...tabNavi(),
@@ -519,13 +460,6 @@ function app_cursor() {
   ])
 }
 
-function app_warp() {
-  return rule('Warp', ifApp('^dev.warp.Warp')).manipulators([
-    ...tabNavi(),
-    map(1, 'Meh').to(toResizeWindow('Warp')),
-  ])
-}
-
 function app_slack() {
   return rule('Slack', ifApp('^com.tinyspeck.slackmacgap$')).manipulators([
     ...historyNavi(),
@@ -538,93 +472,13 @@ function app_slack() {
     }),
 
     map(1, 'Meh').to(
-      // After the 1/4 width, leave some space for opening thread in a new window
-      // before the last 1/4 width
       toResizeWindow('Slack', { x: 1263, y: 25 }, { w: 1760, h: 1415 }),
     ),
   ])
 }
 
-function app_spark() {
-  return rule('Spark', ifApp('^com.readdle.SparkDesktop')).manipulators([
-    ...tapModifiers({
-      '‹⌘': toKey('/'), // openSidebar
-      '‹⌥': toKey('r', '⌘'), // fetch
-
-      '›⌘': toKey('/', '⌘'), // changeLayout
-      '›⌥': toKey('k', '⌘'), // actions
-    }),
-
-    map(1, 'Meh').to(
-      toResizeWindow('Spark Desktop', undefined, { w: 1644, h: 1220 }),
-    ),
-  ])
-}
-
-function app_zoom() {
-  return rule('Zoom', ifApp('^us.zoom.xos$')).manipulators(
-    tapModifiers({
-      '‹⌘': toKey('a', '⌘⇧'), // muteUnmuteMyAudio
-      '‹⌥': toKey('s', '⌘⇧'), // startStopScreenSharing
-
-      '›⌘': toKey('v', '⌘⇧'), // startStopVideo
-      '›⌥': toKey('h', '⌘⇧'), // showHideChatPanel
-    }),
-  )
-}
-
-// function app_raycast() {
-//   return rule('Raycast').manipulators([
-//     map('␣', '⌥').to(raycastExt('evan-liu/quick-open/index')),
-
-//     withModifier('Hyper')({
-//       '↑': raycastWin('previous-display'),
-//       '↓': raycastWin('next-display'),
-//       '←': raycastWin('previous-desktop'),
-//       '→': raycastWin('next-desktop'),
-//     }),
-//     withModifier('Hyper')({
-//       1: raycastWin('first-third'),
-//       2: raycastWin('center-third'),
-//       3: raycastWin('last-third'),
-//       4: raycastWin('first-two-thirds'),
-//       5: raycastWin('last-two-thirds'),
-//       9: raycastWin('left-half'),
-//       0: raycastWin('right-half'),
-//     }),
-//     withModifier('Meh')({
-//       1: raycastWin('first-fourth'),
-//       2: raycastWin('second-fourth'),
-//       3: raycastWin('third-fourth'),
-//       4: raycastWin('last-fourth'),
-//       5: raycastWin('center'),
-//       6: raycastWin('center-half'),
-//       7: raycastWin('center-two-thirds'),
-//       8: raycastWin('maximize'),
-//     }),
-//   ])
-// }
-
-function app_homerow() {
-  return rule('Homerow').manipulators([
-    mapSimultaneous(['f', 'j']).to('␣', 'Hyper'), // Click
-    mapSimultaneous(['f', 'k']).to('⏎', 'Hyper'), // Scroll
-  ])
-}
-
-function app_chatGPT() {
-  return rule('ChatGPT', ifApp('^com.openai.chat$')).manipulators([
-    map(1, 'Meh').to(toResizeWindow('ChatGPT')),
-  ])
-}
-
-/// ---
-
-// map('›⌥', '›⇧').toHyper(),
-//     map('›⌘', '›⇧').toMeh(),
 function map_hyper() {
   return rule('Map Hyper/Meh').manipulators([
-
     map('›⌥', '›⇧').toHyper(),
     map('›⌘', '›⇧').toMeh(),
   ])
