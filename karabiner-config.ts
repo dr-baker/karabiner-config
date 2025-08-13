@@ -1,95 +1,3 @@
-// Core configuration file for Karabiner-Elements using karabiner.ts
-// This file defines keyboard mappings, layers, and application-specific rules
-
-// MAIN FUNCTIONALITY SUMMARY:
-// ==========================
-// 
-// 1. LEADER KEY (l + ;)
-//    - Press 'l' + ';' simultaneously to activate leader mode
-//    - Available modes:
-//      * a: App launcher (e.g., a -> ChatGPT, c -> Calendar, d -> Dictionary)
-//      * e: Emoji picker (e.g., c -> 📅, h -> 💯, j -> 😂)
-//      * g: Gitmoji picker (e.g., b -> 🐛, d -> 📝, f -> 🚩)
-//      * l: Link opener (custom links from links.json)
-//      * r: Raycast commands (e.g., c -> Calendar, d -> Dictionary)
-//      * s: System settings (e.g., a -> Appearance, d -> Displays)
-//
-// 2. LAYERS
-//    - Vim navigation (f + ;):
-//      * h,j,k,l: Arrow keys
-//      * ;: Shift right, d: Command left, s: Control left, a: Option left
-//    - Symbols (s + ;):
-//      * y,u,i,o,p: ? } ] ) %
-//      * h,j,k,l,;: ^ { [ ( $
-//      * n,m,,,.: & ! @ #
-//    - Number pad (d + ;):
-//      * n,m,,,.: 0,1,2,3
-//      * j,k,l: 4,5,6
-//      * u,i,o: 7,8,9
-//      * p,;,/,]: +,-,/,*
-//    - Snippets (z + x):
-//      * 2,3,4,5: ⌫,⌦,⇥,⎋
-//      * 6,7,8,9: ⌘,⌥,⌃,⇧
-//    - System ( ` ):
-//      * 1,2,3,4: Window positions
-//      * ␣: Sleep system
-//
-// 3. DUO MODIFIERS (Simultaneous key presses)
-//    - Single modifiers:
-//      * fd/jk: Command (⌘)
-//      * fs/jl: Control (⌃)
-//      * fa/j;: Option (⌥)
-//      * ds/kl: Shift (⇧)
-//    - Dual modifiers:
-//      * gd/hk: Command + Shift
-//      * gs/hl: Control + Shift
-//      * ga/h;: Option + Shift
-//      * vc/m,: Command + Option
-//      * vx/m.: Command + Control
-//      * cx/,.: Option + Control
-//    - Triple modifier:
-//      * vz/m/: Command + Option + Control
-//
-// 4. APPLICATION-SPECIFIC RULES
-//    - Browsers (Chrome, Safari):
-//      * ⌘[ / ⌘] -> History back/forward
-//      * ⌘⇧[ / ⌘⇧] -> Previous/next tab
-//      * ⌘w -> Close tab
-//      * ⌘` / ⌘⇧` -> Next/previous window
-//      * Chrome: ⌥r -> Refresh, ⌘i -> DevTools, ⌥t -> Search tabs
-//      * Safari: ⌘s -> Toggle sidebar, ⌥r -> Reload, ⌘i -> Web Inspector
-//    - IDEs (JetBrains, Zed, VS Code):
-//      * ⌘[ / ⌘] -> Navigate back/forward
-//      * ⌘⇧[ / ⌘⇧] -> Previous/next tab
-//      * ⌘` / ⌘⇧` -> Next/previous window
-//      * JetBrains: ⌘h -> Hide tools, ⌥r -> Run, ⌘t -> Terminal, ⌥a -> Actions
-//      * Zed: ⌘d -> Close docks, ⌥t -> Tasks, ⌘t -> Terminal, ⌥c -> Commands
-//      * VS Code: ⌘b -> Toggle sidebar, ⌥r -> Run, ⌘t -> Terminal, ⌥c -> Commands
-//    - Communication (Slack, Zoom):
-//      * Slack: ⌘s -> Toggle sidebar, ⌥f -> Section focus, ⌘h -> Hide right bar
-//      * Zoom: ⌘a -> Toggle audio, ⌥s -> Screen share, ⌘v -> Toggle video, ⌥c -> Chat panel
-//    - Raycast:
-//      * ⌥Space -> Quick open
-//      * THRESHOLD + ←↑→↓ -> Window management
-//      * THRESHOLD + ←→ -> Switch display/desktop
-//      * Hyper/Meh + 1-9 -> Window sizing presets
-//    - Homerow:
-//      * f+j -> Left mouse click
-//      * f+k -> Mouse scroll
-//
-// 5. KEYBOARD-SPECIFIC RULES
-//    - Apple keyboard:
-//      * Caps Lock + ⌘⌃ -> Escape
-//      * Caps Lock + ⇧ -> Caps Lock
-//      * Right ⌥⇧ -> Hyper
-//      * Right ⌘⇧ -> Meh
-//    - Moonlander:
-//      * Escape + ⇧/⇪ -> Caps Lock
-//      * Left Control -> Input source switch
-
-// Import core functionality from karabiner.ts library
-// These functions provide the building blocks for creating keyboard mappings
-
 import {
   duoLayer,
   ifApp,
@@ -135,14 +43,60 @@ import {
   tapModifiers,
   toResizeWindow,
   toSystemSetting,
+  swapModifiersForKeys,
 } from './utils.ts'
 
+// External data imports
+import links from './links.json' with { type: 'json' }
+
+// Timing threshold for duo layers and simultaneous keys
 let THRESHOLD = 50;
+
+// Common navigation/editing keys used across rules
+const NAVIGATION_KEYS = [
+  'delete_or_backspace',
+  'up_arrow',
+  'down_arrow',
+  'left_arrow',
+  'right_arrow',
+] as const
+
+// Centralized app bundle identifiers
+const APP_IDS = {
+  arc: '^company.thebrowser.Browser$',
+  cursor: '^com.todesktop.230313mzl4w4u92$',
+  slack: '^com.tinyspeck.slackmacgap$',
+} as const
 
 type ControlMapping = {
   from: readonly [FromKeyParam, ModifierParam],
   to: readonly [ToKeyParam, ModifierParam]
 }
+
+// TODO rcmd rctrl history navigation
+// rcmd arrows maps to something unique that is ultimately change space
+// lcmd arrows maps to lctrl, then fix lctrl
+// Mentality: binding has meaning-- "to" changes to meet that according to apps
+/*
+
+const system_controls_new = {
+  // System level
+  next_space: {
+    from: ['right_arrow', '›⌘'], to: ['⇥', '⌘']
+  },
+  prev_space: {
+    from: ['left_arrow', '›⌘'], to: ['⇥', '⌘⇧']
+  },
+
+  // App level -- default to the binding in "to" unless rebound in app rules
+  back_history: {
+    from: ['h', '⌃'], to: ['[', '⌘']
+  },
+  forward_history: {
+    from: ['l', '⌃'], to: [']', '⌘']
+  },
+};
+*/
 
 const system_controls = {
   // History navigation 
@@ -176,20 +130,37 @@ function applySystemControls() {
 
 function main() {
   writeToProfile(
-    'general',
+    'General',
     [
       rule_leaderKey(),
       rule('System Controls').manipulators(applySystemControls()),
       layer_symbol(), // s+;: symbols (!@#$%^&*()_+)
       layer_digitAndDelete(),// d+;: numpad, delete keys
       layer_system(),// `: window positions, mouse, sleep, tab switch
-      app_chrome(),
+      app_arc(),
       app_cursor(),
       app_slack(),
       map_hyper(),
       caps_hyper(),
       app_shortcuts(),
       snippets(),
+      easyWordBehavior(),
+      shiftBackspaceToDeleteRule(),
+    ],
+    {
+      'basic.simultaneous_threshold_milliseconds': 50,
+      'duo_layer.threshold_milliseconds': 50,
+      'duo_layer.notification': true,
+    },
+  )
+
+  // Windows profile: map Command to Control/Command and Caps Lock to A
+  writeToProfile(
+    'Windows',
+    [
+      //windows_cmd_rule(),
+      windows_caps_to_a_rule(),
+      shiftBackspaceToDeleteRule(),
     ],
     {
       'basic.simultaneous_threshold_milliseconds': 50,
@@ -232,7 +203,7 @@ let leader_mappings = {
   },
   l: {
     name: 'Link',
-    mapping: require('./links.json') as { [key: string]: string[] },
+    mapping: links as unknown as { [key: string]: string | string[] },
     action: (x) => to$(`open ${x}`),
   },
   r: {
@@ -435,11 +406,7 @@ N   M  ,   .     J  K  L    U  I  O    P  ;   /  ]    [      '   H   Y    \\`
 
 function layer_system() {
   return layer('`', 'system').manipulators({
-    1: toMouseCursorPosition({ x: '25%', y: '50%', screen: 0 }),
-    2: toMouseCursorPosition({ x: '50%', y: '50%', screen: 0 }),
-    3: toMouseCursorPosition({ x: '75%', y: '50%', screen: 0 }),
-    4: toMouseCursorPosition({ x: '99%', y: 20, screen: 0 }),
-    5: toMouseCursorPosition({ x: '50%', y: '50%', screen: 1 }),
+    1: toMouseCursorPosition({ x: '99%', y: 20, screen: 0 }),
     '⏎': toPointingButton('button1'),
     '␣': toSleepSystem(),
     j: toKey('⇥', '⌘'),
@@ -447,8 +414,8 @@ function layer_system() {
   })
 }
 
-function app_chrome() {
-  return rule('Arc', ifApp('^company.thebrowser.Browser$')).manipulators([
+function app_arc() {
+  return rule('Arc', ifApp(APP_IDS.arc)).manipulators([
     ...tapModifiers({
       [app_controls.swapTab]: toKey('tab', '⌃'), // refreshThePage
       [app_controls.leftSidebar]: toKey('s', '⌘'), // leftSidebar
@@ -460,7 +427,7 @@ function app_chrome() {
 }
 
 function app_cursor() {
-  return rule('Cursor', ifApp('^com.todesktop.230313mzl4w4u92$')).manipulators([
+  return rule('Cursor', ifApp(APP_IDS.cursor)).manipulators([
     map('h', '⌃').to('-', '⌃'),
     map('l', '⌃').to('-', '⌃⇧'),
     ...tapModifiers({
@@ -473,7 +440,7 @@ function app_cursor() {
 }
 
 function app_slack() {
-  return rule('Slack', ifApp('^com.tinyspeck.slackmacgap$')).manipulators([
+  return rule('Slack', ifApp(APP_IDS.slack)).manipulators([
     ...tapModifiers({
       [app_controls.leftSidebar]: toKey('d', '⌘⇧'), // showHideSideBar
       [app_controls.swapTab]: toKey('f6'), // moveFocusToTheNextSection
@@ -489,6 +456,7 @@ function map_hyper() {
   return rule('Map Hyper/Meh').manipulators([
     map('›⌥', '›⇧').toHyper(),
     map('›⌘', '›⇧').toMeh(),
+    map('.', '⌥').to('end'),
   ])
 }
 
@@ -524,4 +492,49 @@ function snippets() {
   ])
 }
 
-main()
+
+// // Swaps comand and option behavior on certain bindings so that command represents
+// // single word navigation, and option represents beginning of line/end of line navigation.
+function easyWordBehavior() {
+  return rule('Windows: Swap Cmd/Option on keys').manipulators([
+    ...swapModifiersForKeys(
+      NAVIGATION_KEYS,
+      'command',
+      'option',
+    ),
+    ...swapModifiersForKeys(
+      NAVIGATION_KEYS,
+      ['command', 'shift'],
+      ['option', 'shift'],
+    )
+  ])
+}
+
+
+// --------------------------------------------------------------------------------
+
+function windows_cmd_rule() {
+  return rule('Windows: Command to Control and Command').manipulators([
+    map('left_command').to('left_control'),
+    map('right_command').to('right_control'),
+    map('left_control').to('left_command'),
+    map('right_control').to('right_command'),
+  ])
+}
+
+function windows_caps_to_a_rule() {
+  return rule('Windows: Caps Lock to A').manipulators([
+    map('caps_lock').toPointingButton('button3').toIfHeldDown('v', 'control'),
+  ])
+}
+
+// --------------------------------------------------------------------------------
+
+// Map Shift+Backspace to Forward Delete
+function shiftBackspaceToDeleteRule() {
+  return rule('Shift+Backspace to Forward Delete').manipulators([
+    map('delete_or_backspace', 'shift').to('delete_forward')
+  ])
+}
+
+main();

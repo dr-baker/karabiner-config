@@ -11,6 +11,9 @@ import {
   to$,
   type ToEvent,
   toRemoveNotificationMessage,
+  type FromKeyParam,
+  type ModifierParam,
+  type ToKeyParam,
 } from 'karabiner.ts'
 
 export function tapModifiers(
@@ -59,4 +62,18 @@ end tell'`)
 export function toSystemSetting(pane: string) {
   let path = `/System/Library/PreferencePanes/${pane}.prefPane`
   return to$(`open -b com.apple.systempreferences ${path}`)
+}
+
+/**
+ * Swap two modifiers on given keys, producing from-to mappings both ways.
+ */
+export function swapModifiersForKeys(
+  keys: readonly FromKeyParam[],
+  modA: ModifierParam,
+  modB: ModifierParam,
+) {
+  return keys.flatMap((k) => [
+    map(k, modA).to(k as ToKeyParam, modB),
+    map(k, modB).to(k as ToKeyParam, modA),
+  ]);
 }
