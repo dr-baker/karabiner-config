@@ -2,11 +2,12 @@
   "name": "karabiner-config",
   "scripts": {
     "build": "tsx karabiner-config.ts",
+    "dev": "tsx watch karabiner-config.ts",
     "update": "npm update karabiner.ts"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",
-    "karabiner.ts": "latest",
+    "karabiner.ts": "^1.31.0",
     "prettier": "^2",
     "tsx": "^4",
     "typescript": "^5"
