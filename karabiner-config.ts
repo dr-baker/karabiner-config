@@ -44,6 +44,7 @@ import {
   toResizeWindow,
   toSystemSetting,
   swapModifiersForKeys,
+  toToggleAutoClicker,
 } from './utils.ts'
 
 // External data imports
@@ -405,13 +406,31 @@ N   M  ,   .     J  K  L    U  I  O    P  ;   /  ]    [      '   H   Y    \\`
 
 
 function layer_system() {
-  return layer('`', 'system').manipulators({
-    1: toMouseCursorPosition({ x: '99%', y: 20, screen: 0 }),
-    '⏎': toPointingButton('button1'),
-    '␣': toSleepSystem(),
-    j: toKey('⇥', '⌘'),
-    k: toKey('⇥', '⌘⇧'),
-  })
+  let hint = `\
+Mouse: 1=top-right, ⏎=click, ␣=sleep
+Tabs:  j=next, k=prev
+Auto:  a=left, z=right, d=double, t=triple
+Test:  b=test notification
+Sys:   s=system settings`
+
+  return layer('`', 'system')
+    .notification(hint)
+    .manipulators({
+      1: toMouseCursorPosition({ x: '99%', y: 20, screen: 0 }),
+      '⏎': toPointingButton('button1'),
+      '␣': toSleepSystem(),
+      j: toKey('⇥', '⌘'),
+      k: toKey('⇥', '⌘⇧'),
+      // Autoclicker toggles: starts if stopped, stops if running
+      a: toToggleAutoClicker(0.001, 'left'),
+      z: toToggleAutoClicker(0.001, 'right'),
+      d: toToggleAutoClicker(0.1, 'double'),
+      t: toToggleAutoClicker(0.2, 'triple'),
+      // Test binding: creates visible notification and file
+      b: to$(`bash -c "cd '${process.cwd()}' && ./scripts/test-notification.sh"`),
+      // System settings shortcut
+      s: toSystemSetting(''),
+    })
 }
 
 function app_arc() {

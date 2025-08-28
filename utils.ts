@@ -77,3 +77,13 @@ export function swapModifiersForKeys(
     map(k, modB).to(k as ToKeyParam, modA),
   ]);
 }
+
+/**
+ * Toggle autoclicker: starts if stopped, stops if running.
+ * Requires: `brew install cliclick`
+ */
+export function toToggleAutoClicker(intervalSeconds = 0.06, clickType = 'left', options = '') {
+  // Use relative path from project root
+  const scriptPath = './scripts/autoclicker.sh'
+  return to$(`bash -c "cd '${process.cwd()}' && ${scriptPath} ${intervalSeconds} ${clickType} ${options}"`)
+}
