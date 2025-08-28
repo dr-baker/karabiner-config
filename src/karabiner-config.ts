@@ -48,7 +48,28 @@ import {
 } from './utils.ts'
 
 // External data imports
-import links from './links.json' with { type: 'json' }
+import links from '../links.json' with { type: 'json' }
+
+// ----------------------------------------------------------------------------
+// DSL HELPERS
+// ----------------------------------------------------------------------------
+
+function makeRule(name: string, manipulators: any[]) {
+  return rule(name).manipulators(manipulators)
+}
+
+function makeLayer(key: any, name: string, hint?: string) {
+  let l = layer(key, name)
+  return hint ? l.notification(hint) : l
+}
+
+function mapFromTo(fromKey: FromKeyParam, fromMod: ModifierParam, toKey: ToKeyParam, toMod?: ModifierParam) {
+  return map(fromKey, fromMod).to(toKey as ToKeyParam, toMod)
+}
+
+function bindApp(name: string, bundleId: string, manipulators: any[]) {
+  return rule(name, ifApp(bundleId)).manipulators(manipulators)
+}
 
 // Timing threshold for duo layers and simultaneous keys
 let THRESHOLD = 50;
@@ -74,102 +95,9 @@ type ControlMapping = {
   to: readonly [ToKeyParam, ModifierParam]
 }
 
-// TODO rcmd rctrl history navigation
-// rcmd arrows maps to something unique that is ultimately change space
-// lcmd arrows maps to lctrl, then fix lctrl
-// Mentality: binding has meaning-- "to" changes to meet that according to apps
-/*
-
-const system_controls_new = {
-  // System level
-  next_space: {
-    from: ['right_arrow', '›⌘'], to: ['⇥', '⌘']
-  },
-  prev_space: {
-    from: ['left_arrow', '›⌘'], to: ['⇥', '⌘⇧']
-  },
-
-  // App level -- default to the binding in "to" unless rebound in app rules
-  back_history: {
-    from: ['h', '⌃'], to: ['[', '⌘']
-  },
-  forward_history: {
-    from: ['l', '⌃'], to: [']', '⌘']
-  },
-};
-*/
-
-const system_controls = {
-  // History navigation 
-  back_history: {
-    from: ['h', '⌃'], to: ['[', '⌘']
-  },
-  forward_history: {
-    from: ['l', '⌃'], to: [']', '⌘']
-  },
-  // Tab navigation
-  prev_tab: {
-    from: ['h', '⌃'], to: ['[', '⌘⇧']
-  },
-  next_tab: {
-    from: ['l', '⌃'], to: [']', '⌘⇧']
-  },
-  // Alt-tab switcher
-  prev_file: {
-    from: ['h', '⌘⌥⌃'], to: ['⇥', '⌃⇧']
-  },
-  next_file: {
-    from: ['l', '⌘⌥⌃'], to: ['⇥', '⌃']
-  }
-} as const satisfies Record<string, ControlMapping>;
-
-function applySystemControls() {
-  return Object.entries(system_controls).map(([_, mapping]) => 
-    map(mapping.from[0], mapping.from[1]).to(mapping.to[0], mapping.to[1])
-  );
-}
-
-function main() {
-  writeToProfile(
-    'General',
-    [
-      rule_leaderKey(),
-      rule('System Controls').manipulators(applySystemControls()),
-      layer_symbol(), // s+;: symbols (!@#$%^&*()_+)
-      layer_digitAndDelete(),// d+;: numpad, delete keys
-      layer_system(),// `: window positions, mouse, sleep, tab switch
-      app_arc(),
-      app_cursor(),
-      app_slack(),
-      map_hyper(),
-      caps_hyper(),
-      app_shortcuts(),
-      snippets(),
-      easyWordBehavior(),
-      shiftBackspaceToDeleteRule(),
-    ],
-    {
-      'basic.simultaneous_threshold_milliseconds': 50,
-      'duo_layer.threshold_milliseconds': 50,
-      'duo_layer.notification': true,
-    },
-  )
-
-  // Windows profile: map Command to Control/Command and Caps Lock to A
-  writeToProfile(
-    'Windows',
-    [
-      //windows_cmd_rule(),
-      windows_caps_to_a_rule(),
-      shiftBackspaceToDeleteRule(),
-    ],
-    {
-      'basic.simultaneous_threshold_milliseconds': 50,
-      'duo_layer.threshold_milliseconds': 50,
-      'duo_layer.notification': true,
-    },
-  )
-}
+// ----------------------------------------------------------------------------
+// DECLARATIVE MAPPINGS
+// ----------------------------------------------------------------------------
 
 let leader_mappings = {
   a: {
@@ -228,7 +156,7 @@ let leader_mappings = {
       g: 'Software Update', // General
       k: 'Keyboard',
       m: 'Mouse',
-      n: 'Network', 
+      n: 'Network',
       p: 'Security', // Privacy and Security
     },
     action: toSystemSetting,
@@ -241,17 +169,119 @@ let leader_mappings = {
   }
 }
 
-// New plan: sidebar toggles with CMD+S and CMD+SHIFT+S
-// tap modifiers used for bespoke functions without an established shortcut
-// in my headcannon. rcmd, ropt for history nav. 
-// ›⌃ ›⌥ ›⌘ ‹⌃ ‹⌥ ‹⌘
+// Sidebar and search controls shared across app rules
 let app_controls = {
   leftSidebar: '‹⌥',
   rightSidebar: '›⌥',
   swapTab: '‹⌃',
   search: '›⌘',
-  // reloadPage: '›⌥',
 }
+
+// TODO rcmd rctrl history navigation
+// rcmd arrows maps to something unique that is ultimately change space
+// lcmd arrows maps to lctrl, then fix lctrl
+// Mentality: binding has meaning-- "to" changes to meet that according to apps
+/*
+
+const system_controls_new = {
+  // System level
+  next_space: {
+    from: ['right_arrow', '›⌘'], to: ['⇥', '⌘']
+  },
+  prev_space: {
+    from: ['left_arrow', '›⌘'], to: ['⇥', '⌘⇧']
+  },
+
+  // App level -- default to the binding in "to" unless rebound in app rules
+  back_history: {
+    from: ['h', '⌃'], to: ['[', '⌘']
+  },
+  forward_history: {
+    from: ['l', '⌃'], to: [']', '⌘']
+  },
+};
+*/
+
+const system_controls = {
+  // History navigation 
+  back_history: {
+    from: ['h', '⌃'], to: ['[', '⌘']
+  },
+  forward_history: {
+    from: ['l', '⌃'], to: [']', '⌘']
+  },
+  // Tab navigation
+  prev_tab: {
+    from: ['h', '⌃'], to: ['[', '⌘⇧']
+  },
+  next_tab: {
+    from: ['l', '⌃'], to: [']', '⌘⇧']
+  },
+  // Alt-tab switcher
+  prev_file: {
+    from: ['h', '⌘⌥⌃'], to: ['⇥', '⌃⇧']
+  },
+  next_file: {
+    from: ['l', '⌘⌥⌃'], to: ['⇥', '⌃']
+  }
+} as const satisfies Record<string, ControlMapping>;
+
+function applySystemControls() {
+  return Object.entries(system_controls).map(([_, mapping]) => 
+    map(mapping.from[0], mapping.from[1]).to(mapping.to[0], mapping.to[1])
+  );
+}
+
+// ----------------------------------------------------------------------------
+// PROFILE COMPOSITION (ENTRY POINT)
+// ----------------------------------------------------------------------------
+
+writeToProfile(
+  'General',
+  [
+    // Core layers
+    rule_leaderKey(),
+    makeRule('System Controls', applySystemControls()),
+    layer_symbol(), // s+;: symbols (!@#$%^&*()_+)
+    layer_digitAndDelete(), // d+;: numpad, delete keys
+    layer_system(), // `: window positions, mouse, sleep, tab switch
+
+    // App rules
+    app_arc(),
+    app_cursor(),
+    app_slack(),
+
+    // Modifier/utility rules
+    map_hyper(),
+    caps_hyper(),
+    app_shortcuts(),
+    snippets(),
+    easyWordBehavior(),
+    shiftBackspaceToDeleteRule(),
+  ],
+  {
+    'basic.simultaneous_threshold_milliseconds': 50,
+    'duo_layer.threshold_milliseconds': 50,
+    'duo_layer.notification': true,
+  },
+)
+
+// Windows profile: map Command to Control/Command and Caps Lock to A
+writeToProfile(
+  'Windows',
+  [
+    //windows_cmd_rule(),
+    windows_caps_to_a_rule(),
+    shiftBackspaceToDeleteRule(),
+  ],
+  {
+    'basic.simultaneous_threshold_milliseconds': 50,
+    'duo_layer.threshold_milliseconds': 50,
+    'duo_layer.notification': true,
+  },
+)
+
+// (moved up) leader_mappings and app_controls are defined earlier for clarity
 
 function rule_leaderKey() {
   let _var = 'leader'
@@ -413,8 +443,7 @@ Auto:  a=left, z=right, d=double, t=triple
 Test:  b=test notification
 Sys:   s=system settings`
 
-  return layer('`', 'system')
-    .notification(hint)
+  return makeLayer('`', 'system', hint)
     .manipulators({
       1: toMouseCursorPosition({ x: '99%', y: 20, screen: 0 }),
       '⏎': toPointingButton('button1'),
@@ -434,7 +463,7 @@ Sys:   s=system settings`
 }
 
 function app_arc() {
-  return rule('Arc', ifApp(APP_IDS.arc)).manipulators([
+  return bindApp('Arc', APP_IDS.arc, [
     ...tapModifiers({
       [app_controls.swapTab]: toKey('tab', '⌃'), // refreshThePage
       [app_controls.leftSidebar]: toKey('s', '⌘'), // leftSidebar
@@ -446,7 +475,7 @@ function app_arc() {
 }
 
 function app_cursor() {
-  return rule('Cursor', ifApp(APP_IDS.cursor)).manipulators([
+  return bindApp('Cursor', APP_IDS.cursor, [
     map('h', '⌃').to('-', '⌃'),
     map('l', '⌃').to('-', '⌃⇧'),
     ...tapModifiers({
@@ -459,7 +488,7 @@ function app_cursor() {
 }
 
 function app_slack() {
-  return rule('Slack', ifApp(APP_IDS.slack)).manipulators([
+  return bindApp('Slack', APP_IDS.slack, [
     ...tapModifiers({
       [app_controls.leftSidebar]: toKey('d', '⌘⇧'), // showHideSideBar
       [app_controls.swapTab]: toKey('f6'), // moveFocusToTheNextSection
@@ -556,4 +585,4 @@ function shiftBackspaceToDeleteRule() {
   ])
 }
 
-main();
+// End of file: profiles are written at module load via writeToProfile

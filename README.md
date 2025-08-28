@@ -5,6 +5,38 @@ This is my personal configuration for [Karabiner-Elements](https://github.com/pq
 - [karabiner-config.ts](https://github.com/dr-baker/karabiner-config/blob/main/karabiner-config.ts): Main configuration file
 - [utils.ts](https://github.com/dr-baker/karabiner-config/blob/main/utils.ts): Utility functions
 
+## Quick Start
+
+### Prerequisites
+- [Karabiner-Elements](https://karabiner-elements.pqrs.org/) installed and running
+- Node.js (for building the configuration)
+
+### Installation & Usage
+
+1. **Clone and install dependencies:**
+   ```bash
+   git clone <your-repo-url>
+   cd karabiner-config-1
+   npm install
+   ```
+
+2. **Build the configuration:**
+   ```bash
+   npm run build
+   ```
+   This compiles the TypeScript and automatically updates Karabiner-Elements.
+
+3. **For development (watch mode):**
+   ```bash
+   npm run dev
+   ```
+   This watches for changes and rebuilds automatically.
+
+### Available Scripts
+- `npm run build` - Build once and update Karabiner-Elements
+- `npm run dev` - Watch mode for iterative development
+- `npm run update` - Update karabiner.ts dependency
+
 ## My Setup
 
 My intention is to iterate on the original configuration by consolidating the configuration out of utils and into the configuration file. Bindings occur at the top of the file and additional logic is abstracted away. 

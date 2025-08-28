@@ -1,8 +1,8 @@
 {
   "name": "karabiner-config",
   "scripts": {
-    "build": "tsx karabiner-config.ts",
-    "dev": "tsx watch karabiner-config.ts",
+    "build": "tsx src/karabiner-config.ts",
+    "dev": "tsx watch src/karabiner-config.ts",
     "update": "npm update karabiner.ts"
   },
   "devDependencies": {
